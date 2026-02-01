@@ -28,11 +28,11 @@ const weatherIconMap = {
     '50n': 'water'
 };
 
-// плавное размытие (без opacity, только blur + scale)
+// плавное размытие фона (без opacity, только blur + scale)
 const changeSeasonalBackground = (todayItem, cityTimezone) => {
     const leftInfo = document.querySelector('.left-info');
 
-    // определяем сезон и погоду
+    // определяем сезон по месяцу
     const localTimestampMs = (todayItem.dt + cityTimezone) * 1000;
     const localDate = new Date(localTimestampMs);
     const month = localDate.getMonth();
@@ -47,32 +47,32 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
     if (main === 'clear') bgClass = `background-${season}-clear`;
     else if (main === 'clouds' || main === 'snow') bgClass = `background-${season}-cloudy`;
 
-    // размытие + притёмнение (без opacity контейнера!)
+    // размытие + scale анимация
     
-    // 1. размываем текущую картинку (0.3s)
+    // 1. размываем текущую (0.3s)
     leftInfo.style.transition = 'filter 0.3s ease-in-out, transform 0.3s ease-in-out';
     leftInfo.style.filter = 'blur(3px) brightness(0.7)';
     leftInfo.style.transform = 'scale(1.02)';
     
-    // 2. меняем картинку (мгновенно, но размыто)
+    // 2. меняем картинку через 300мс
     setTimeout(() => {
-        // очищаем классы
+        // очищаем все фоновые классы
         leftInfo.classList.remove(
             'background-winter', 'background-spring', 'background-summer', 'background-autumn',
             'background-winter-clear', 'background-spring-clear', 'background-summer-clear', 'background-autumn-clear',
             'background-winter-cloudy', 'background-spring-cloudy', 'background-summer-cloudy', 'background-autumn-cloudy'
         );
         
-        // добавляем новую картинку
+        // новая картинка
         leftInfo.classList.add(bgClass);
         
-        // лёгкое размытие новой + scale назад
+        // лёгкое размытие новой
         leftInfo.style.filter = 'blur(2px) brightness(0.8)';
         leftInfo.style.transform = 'scale(1.01)';
         leftInfo.style.transition = 'filter 0.4s ease-out, transform 0.4s ease-out';
     }, 300);
 
-    // 3. плавное увеличение чёткости новой картинки (0.6s)
+    // 3. чёткость (0.6s)
     setTimeout(() => {
         leftInfo.style.filter = 'blur(0px) brightness(1.05)';
         leftInfo.style.transform = 'scale(1.03)';
@@ -86,6 +86,20 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
         leftInfo.style.transition = 'all 0.3s ease, background-image 0.8s ease-in-out';
     }, 1300);
 };
+
+// сохраняем историю поиска в localStorage
+function saveToHistory(city) {
+    let history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+    history.unshift(city); // в начало
+    history = history.slice(0, 10); // максимум 10 городов
+    localStorage.setItem('weatherHistory', JSON.stringify(history));
+}
+
+// показываем историю поиска
+function showHistory() {
+    const history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+    console.log('📝 история поиска:', history);
+}
 
 // главная функция получения погоды
 const fetchWeatherData = location => {
@@ -102,6 +116,9 @@ const fetchWeatherData = location => {
                 alert(`город не найден: ${location}`);
                 return;
             }
+
+            // сохраняем в историю
+            saveToHistory(location);
 
             const todayItem = data.list[0];
             const todayWeather = todayItem.weather[0].description;
@@ -165,14 +182,21 @@ const fetchWeatherData = location => {
         });
 };
 
-// инициализация
+// инициализация + показ истории
 document.addEventListener('DOMContentLoaded', () => {
+    showHistory();
     fetchWeatherData('Saint Petersburg, RU');
 });
 
-// кнопка поиска
+// кнопка поиска с валидацией
 locButton.addEventListener('click', () => {
     const location = prompt('введите название города:');
-    if (!location || location.trim() === '') return;
+    
+    // валидация: не пустой + только буквы и пробелы (рус+лат)
+    if (!location || !/^[a-zA-Zа-яёА-ЯЁ\s,.-]+$/.test(location.trim())) {
+        alert('введите корректное название города (только буквы)');
+        return;
+    }
+    
     fetchWeatherData(location.trim());
 });
