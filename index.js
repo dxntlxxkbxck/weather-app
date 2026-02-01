@@ -29,7 +29,7 @@ const weatherIconMap = {
 
 function fetchWeatherData(location) {
     // Сформировать URL API с учётом локации и ключа
-    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=metric`;
+    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=metric&lang=ru`;
 
     // Получить данные о погоде из API
     fetch(apiUrl).then(response => response.json()).then(data => {
