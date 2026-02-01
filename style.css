@@ -50,7 +50,6 @@ body{
     animation: bgChange 1s ease-in-out;
 }
 
-/* 🌸 СЕЗОННЫЕ ФОНЫ */
 .background-winter { background-image: url('/img/winter.jpg'); }
 .background-winter-clear { background-image: url('/img/winter-clear.jpg'); }
 .background-winter-cloudy { background-image: url('/img/winter-cloudy.jpg'); }
@@ -63,7 +62,6 @@ body{
 .background-autumn { background-image: url('/img/autumn.jpg'); }
 .background-autumn-clear    { background-image: url('/img/autumn-clear.jpg'); }
 .background-autumn-cloudy   { background-image: url('/img/autumn-cloudy.jpg'); }
-
 
 @keyframes bgChange {
     0% { opacity: 0.7; filter: blur(1px); }
