@@ -28,50 +28,64 @@ const weatherIconMap = {
     '50n': 'water'
 };
 
-// 🔥 Функция смены фона по сезонам (стрелочная)
+// 🔥 ИСПРАВЛЕННАЯ функция смены фона ТОЛЬКО под твои файлы
 const changeSeasonalBackground = (todayItem, cityTimezone) => {
     const leftInfo = document.querySelector('.left-info');
 
-    // Локальное время города для определения месяца
+    // Правильный локальный месяц (ФЕВРАЛЬ = 1)
     const localTimestampMs = (todayItem.dt + cityTimezone) * 1000;
     const localDate = new Date(localTimestampMs);
-    const month = localDate.getUTCMonth(); // 0–11
+    const month = localDate.getMonth(); // 0-11
 
-    // Сезон по месяцу (реалистично!)
+    // Сезон по месяцу
     let season = 'winter';
-    if (month >= 2 && month <= 4) season = 'spring';     // март–май
-    else if (month >= 5 && month <= 7) season = 'summer'; // июнь–август
-    else if (month >= 8 && month <= 10) season = 'autumn'; // сентябрь–ноябрь
-    else season = 'winter'; // декабрь–февраль
+    if (month >= 2 && month <= 4) season = 'spring';
+    else if (month >= 5 && month <= 7) season = 'summer';
+    else if (month >= 8 && month <= 10) season = 'autumn';
 
-    // Базовый класс по сезону
-    let bgClass = `background-${season}`;
-
-    // Уточняем по погоде (если есть такие картинки)
+    // ТВОИ ТОЧНЫЕ файлы: clear/cloudy/базовый (БЕЗ rainy/snowy)
     const main = todayItem.weather[0].main.toLowerCase();
-    if (main === 'clear') bgClass = `background-${season}-clear`;
-    else if (main === 'clouds') bgClass = `background-${season}-cloudy`;
-    else if (main === 'rain' || main === 'drizzle') bgClass = `background-${season}-rainy`;
-    else if (main === 'snow') bgClass = `background-${season}-snowy`;
+    let bgClass = `background-${season}`;
+    
+    if (main === 'clear') {
+        bgClass = `background-${season}-clear`;
+    } else if (main === 'clouds' || main === 'snow') { // snow → cloudy
+        bgClass = `background-${season}-cloudy`;
+    }
 
-    // Плавная смена фона
+    // 🔥 ПРЯМАЯ очистка всех ТВОИХ классов
+    leftInfo.classList.remove(
+        'background-winter', 'background-spring', 'background-summer', 'background-autumn',
+        'background-winter-clear', 'background-spring-clear', 'background-summer-clear', 'background-autumn-clear',
+        'background-winter-cloudy', 'background-spring-cloudy', 'background-summer-cloudy', 'background-autumn-cloudy'
+    );
+
     leftInfo.classList.add('changing-bg');
-    leftInfo.className = leftInfo.className.replace(/background-[\w-]+/g, '').trim();
-
+    
     setTimeout(() => {
         leftInfo.classList.add(bgClass);
         leftInfo.classList.remove('changing-bg');
     }, 400);
 };
 
-// 🔥 Главная функция получения погоды (стрелочная)
+// 🔥 Главная функция получения погоды
 const fetchWeatherData = location => {
+    console.log('🔍 Поиск:', location);
     const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=metric&lang=ru`;
 
     fetch(apiUrl)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        })
         .then(data => {
-            // Сегодняшние данные
+            if (data.cod !== "200") {
+                alert(`Город не найден: ${location}`);
+                return;
+            }
+
+            console.log('✅ Данные для:', data.city.name);
+            
             const todayItem = data.list[0];
             const todayWeather = todayItem.weather[0].description;
             const todayTemperature = `${Math.round(todayItem.main.temp)}°`;
@@ -81,15 +95,13 @@ const fetchWeatherData = location => {
             todayInfo.querySelector('h2').textContent = new Date().toLocaleDateString('ru', { weekday: 'long' });
             todayInfo.querySelector('span').textContent = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' });
             
-            // Иконка и температура
             todayWeatherIcon.className = `bx bx-${weatherIconMap[todayWeatherIconCode]}`;
             todayTemp.textContent = todayTemperature;
 
-            // Локация и описание
             document.querySelector('.today-info > div > span').textContent = `${data.city.name}, ${data.city.country}`;
             document.querySelector('.today-weather > h3').textContent = todayWeather;
 
-            // 🔥 Смена фона по сезону (февраль = зима!)
+            // Смена фона
             changeSeasonalBackground(todayItem, data.city.timezone);
 
             // Детали погоды
@@ -127,7 +139,6 @@ const fetchWeatherData = location => {
                     `;
                     count++;
                 }
-
                 if (count === 4) return;
             });
         })
