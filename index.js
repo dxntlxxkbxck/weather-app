@@ -82,7 +82,7 @@ function fetchWeatherData(location) {
         daysList.innerHTML = '';
         for (const dayData of nextDaysData) {
             const forecastDate = new Date(dayData.dt_txt);
-            const dayAbbreviation = forecastDate.toLocaleDateString('en', { weekday: 'short' });
+            const dayAbbreviation = forecastDate.toLocaleDateString('ru', { weekday: 'short' });
             const dayTemp = `${Math.round(dayData.main.temp)}°`;
             const iconCode = dayData.weather[0].icon;
 
