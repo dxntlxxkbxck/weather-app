@@ -249,6 +249,8 @@ body {
     margin: 10px 35px;
 
     list-style: none;
+    
+    scrollbar-width: none;
 
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
@@ -490,12 +492,15 @@ body {
     .days-list {
         margin: 10px 24px;
         overflow-x: auto;
+        justify-content: center;
     }
 
 
     /* задаем минимальную ширину карточки дня */
     .days-list li {
-        flex: 1 0 72px;
+        flex: 1;
+        min-width: 0;
+        padding: 15px 8px;
     }
 
 
