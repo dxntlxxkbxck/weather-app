@@ -5,6 +5,14 @@ const todayInfo = document.querySelector('.today-info');
 const todayWeatherIcon = document.querySelector('.today-weather i');
 const todayTemp = document.querySelector('.weather-temp');
 const daysList = document.querySelector('.days-list');
+const statusMessage = document.querySelector('.status-message');
+const historyList = document.querySelector('.history-list');
+
+const backgroundClasses = [
+    'background-winter', 'background-spring', 'background-summer', 'background-autumn',
+    'background-winter-clear', 'background-spring-clear', 'background-summer-clear', 'background-autumn-clear',
+    'background-winter-cloudy', 'background-spring-cloudy', 'background-summer-cloudy', 'background-autumn-cloudy'
+];
 
 // соответствие кодов погодных условий классам иконок
 const weatherIconMap = {
@@ -35,7 +43,7 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
     // определяем сезон по месяцу
     const localTimestampMs = (todayItem.dt + cityTimezone) * 1000;
     const localDate = new Date(localTimestampMs);
-    const month = localDate.getMonth();
+    const month = localDate.getUTCMonth();
     
     let season = 'winter';
     if (month >= 2 && month <= 4) season = 'spring';
@@ -56,12 +64,7 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
     
     // 2. меняем картинку через 300мс
     setTimeout(() => {
-        // очищаем все фоновые классы
-        leftInfo.classList.remove(
-            'background-winter', 'background-spring', 'background-summer', 'background-autumn',
-            'background-winter-clear', 'background-spring-clear', 'background-summer-clear', 'background-autumn-clear',
-            'background-winter-cloudy', 'background-spring-cloudy', 'background-summer-cloudy', 'background-autumn-cloudy'
-        );
+        leftInfo.classList.remove(...backgroundClasses);
         
         // новая картинка
         leftInfo.classList.add(bgClass);
@@ -87,35 +90,84 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
     }, 1300);
 };
 
-// сохраняем историю поиска в localStorage
-function saveToHistory(city) {
-    let history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
-    history.unshift(city); // в начало
-    history = history.slice(0, 10); // максимум 10 городов
-    localStorage.setItem('weatherHistory', JSON.stringify(history));
+function setStatus(message = '') {
+    statusMessage.textContent = message;
 }
 
-// показываем историю поиска
-function showHistory() {
-    const history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
-    console.log('📝 история поиска:', history);
+function readHistory() {
+    try {
+        const history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+        return Array.isArray(history) ? history : [];
+    } catch {
+        localStorage.removeItem('weatherHistory');
+        return [];
+    }
+}
+
+function renderHistory() {
+    const history = readHistory();
+    historyList.innerHTML = '';
+
+    if (history.length === 0) {
+        historyList.innerHTML = '<li class="history-empty">Пока нет сохраненных городов</li>';
+        return;
+    }
+
+    history.forEach(city => {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = city;
+        button.addEventListener('click', () => fetchWeatherData(city));
+        item.appendChild(button);
+        historyList.appendChild(item);
+    });
+}
+
+// сохраняем историю поиска в localStorage
+function saveToHistory(city) {
+    const normalizedCity = city.trim();
+    const history = readHistory()
+        .filter(item => item.toLowerCase() !== normalizedCity.toLowerCase());
+
+    history.unshift(normalizedCity);
+    localStorage.setItem('weatherHistory', JSON.stringify(history.slice(0, 10)));
+    renderHistory();
+}
+
+function getCityDate(timestamp, timezone) {
+    return new Date((timestamp + timezone) * 1000);
+}
+
+function getLocalDateOptions(date) {
+    return {
+        weekday: date.toLocaleDateString('ru', { weekday: 'long', timeZone: 'UTC' }),
+        fullDate: date.toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }),
+        day: date.toLocaleDateString('ru', { weekday: 'short', timeZone: 'UTC' }),
+        dayNumber: date.getUTCDate()
+    };
 }
 
 // главная функция получения погоды
 const fetchWeatherData = location => {
-    console.log('🔍 поиск:', location);
-    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=metric&lang=ru`;
+    setStatus('Загрузка данных о погоде...');
+    locButton.disabled = true;
+
+    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric&lang=ru`;
 
     fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
+        .then(async response => {
+            const data = await response.json();
+
+            if (!response.ok) {
+                const error = new Error(data.message || `HTTP ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
         })
         .then(data => {
-            if (data.cod !== "200") {
-                alert(`город не найден: ${location}`);
-                return;
-            }
 
             // сохраняем в историю
             saveToHistory(location);
@@ -125,11 +177,13 @@ const fetchWeatherData = location => {
             const todayTemperature = `${Math.round(todayItem.main.temp)}°`;
             const todayWeatherIconCode = todayItem.weather[0].icon;
 
-            // дата и время
-            todayInfo.querySelector('h2').textContent = new Date().toLocaleDateString('ru', { weekday: 'long' });
-            todayInfo.querySelector('span').textContent = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' });
+            // дата по часовому поясу выбранного города
+            const cityDate = getCityDate(todayItem.dt, data.city.timezone);
+            const cityDateOptions = getLocalDateOptions(cityDate);
+            todayInfo.querySelector('h2').textContent = cityDateOptions.weekday;
+            todayInfo.querySelector('span').textContent = cityDateOptions.fullDate;
             
-            todayWeatherIcon.className = `bx bx-${weatherIconMap[todayWeatherIconCode]}`;
+            todayWeatherIcon.className = `bx bx-${weatherIconMap[todayWeatherIconCode] || 'cloud'}`;
             todayTemp.textContent = todayTemperature;
 
             document.querySelector('.today-info > div > span').textContent = `${data.city.name}, ${data.city.country}`;
@@ -139,9 +193,10 @@ const fetchWeatherData = location => {
             changeSeasonalBackground(todayItem, data.city.timezone);
 
             // детали погоды
-            const todayPrecipitation = `${(todayItem.pop || 0).toFixed(0)}%`;
+            const todayPrecipitation = `${Math.round((todayItem.pop || 0) * 100)}%`;
             const todayHumidity = `${todayItem.main.humidity}%`;
-            const todayWindSpeed = `${Math.round(todayItem.wind.speed)} км/ч`;
+            // м/с в км/ч
+            const todayWindSpeed = `${Math.round(todayItem.wind.speed * 3.6)} км/ч`;
 
             document.querySelector('.day-info').innerHTML = `
                 <div><span class="title">Осадки</span><span class="value">${todayPrecipitation}</span></div>
@@ -149,42 +204,57 @@ const fetchWeatherData = location => {
                 <div><span class="title">Скорость ветра</span><span class="value">${todayWindSpeed}</span></div>
             `;
 
-            // прогноз на 4 дня
-            const today = new Date();
+            // прогноз на 5 дней
+            const today = getCityDate(todayItem.dt, data.city.timezone);
+            const todayDayNumber = getLocalDateOptions(today).dayNumber;
             const nextDaysData = data.list.slice(1);
             const uniqueDays = new Set();
             let count = 0;
             daysList.innerHTML = '';
 
-            nextDaysData.forEach(dayData => {
-                const forecastDate = new Date(dayData.dt_txt);
-                const dayAbbreviation = forecastDate.toLocaleDateString('ru', { weekday: 'short' });
+            for (const dayData of nextDaysData) {
+                const forecastDate = getCityDate(dayData.dt, data.city.timezone);
+                const forecastOptions = getLocalDateOptions(forecastDate);
+                const dayAbbreviation = forecastOptions.day;
                 const dayTemp = `${Math.round(dayData.main.temp)}°`;
                 const iconCode = dayData.weather[0].icon;
 
-                if (!uniqueDays.has(dayAbbreviation) && forecastDate.getDate() !== today.getDate()) {
+                if (!uniqueDays.has(dayAbbreviation) && forecastOptions.dayNumber !== todayDayNumber) {
                     uniqueDays.add(dayAbbreviation);
                     daysList.innerHTML += `
                         <li>
-                            <i class='bx bx-${weatherIconMap[iconCode]}'></i>
+                            <i class='bx bx-${weatherIconMap[iconCode] || 'cloud'}'></i>
                             <span>${dayAbbreviation}</span>
                             <span class="day-temp">${dayTemp}</span>
                         </li>
                     `;
                     count++;
                 }
-                if (count === 4) return;
-            });
+                // прогноз на 5 дней
+                if (count === 5) break;
+            }
+
+            setStatus(`Данные обновлены: ${data.city.name}`);
         })
         .catch(error => {
-            alert(`ошибка загрузки погоды: ${error}`);
-            console.error('api error:', error);
+            if (error.status === 404) {
+                setStatus(`Город не найден: ${location}`);
+                alert(`Город не найден: ${location}`);
+                return;
+            }
+
+            setStatus('Не удалось загрузить данные. Проверьте интернет или API-ключ.');
+            alert(`Ошибка загрузки погоды: ${error.message}`);
+            console.error('API error:', error);
+        })
+        .finally(() => {
+            locButton.disabled = false;
         });
 };
 
 // инициализация + показ истории
 document.addEventListener('DOMContentLoaded', () => {
-    showHistory();
+    renderHistory();
     fetchWeatherData('Saint Petersburg, RU');
 });
 

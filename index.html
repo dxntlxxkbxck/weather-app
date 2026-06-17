@@ -4,79 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <link
+        href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+        rel="stylesheet"
+    >
     <link rel="stylesheet" href="style.css">
+
     <title>Weather App</title>
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="left-info">
+    <!-- основной контейнер приложения -->
+    <main class="container">
+
+        <!-- левая панель с текущими погодными данными -->
+        <section class="left-info">
+
+            <!-- затемняющий градиент поверх фонового изображения -->
             <div class="pic-gradient"></div>
+
+            <!-- дата и выбранный город -->
             <div class="today-info">
-                <h2>Пятница</h2>
-                <span>01 февраля 2026</span>
+                <h2>Загрузка...</h2>
+                <span>Получение даты...</span>
+
                 <div>
-                    <i class='bx bx-current-location'></i>
-                    <span>Санкт-Петербург, РФ</span>
+                    <i
+                        class="bx bx-current-location"
+                        aria-hidden="true"
+                    ></i>
+                    <span>Определение города...</span>
                 </div>
             </div>
-            <div class="today-weather">
-                <i class='bx bx-sun'></i>
-                <h1 class="weather-temp">
-                    25°
-                </h1>
-                <h3>Солнечно</h3>
-            </div>
-        </div>
 
-        <div class="right-info">
+            <!-- температура и описание погоды -->
+            <div class="today-weather">
+                <i
+                    class="bx bx-cloud"
+                    aria-hidden="true"
+                ></i>
+
+                <h1 class="weather-temp">--°</h1>
+
+                <h3>Загрузка погоды...</h3>
+            </div>
+
+        </section>
+
+        <!-- правая панель с подробными данными -->
+        <section class="right-info">
+
+            <!-- осадки, влажность и скорость ветра -->
             <div class="day-info">
                 <div>
                     <span class="title">Осадки</span>
-                    <span class="value">4 %</span>
+                    <span class="value">--%</span>
                 </div>
+
                 <div>
                     <span class="title">Влажность</span>
-                    <span class="value">34 %</span>
+                    <span class="value">--%</span>
                 </div>
+
                 <div>
                     <span class="title">Скорость ветра</span>
-                    <span class="value">6 км/ч</span>
+                    <span class="value">-- км/ч</span>
                 </div>
             </div>
 
-            <ul class="days-list">
-                <li>
-                    <i class='bx bx-cloud'></i>
-                    <span>Пн</span>
-                    <span class="day-temp">23°</span>
-                </li>
-                <li>
-                    <i class='bx bx-sun'></i>
-                    <span>Вт</span>
-                    <span class="day-temp">28°</span>
-                </li>
-                <li>
-                    <i class='bx bx-cloud-rain'></i>
-                    <span>Ср</span>
-                    <span class="day-temp">02°</span>
-                </li>
-                <li>
-                    <i class='bx bx-cloud-drizzle'></i>
-                    <span>Чт</span>
-                    <span class="day-temp">14°</span>
-                </li>
-            </ul>
+            <!-- прогноз создаётся динамически в index.js -->
+            <ul class="days-list"></ul>
 
+            <!-- кнопка поиска и сообщение о состоянии -->
             <div class="btn-container">
-                <button class="loc-button">Поиск локации</button>
+                <button
+                    class="loc-button"
+                    type="button"
+                >
+                    Поиск локации
+                </button>
+
+                <p
+                    class="status-message"
+                    aria-live="polite"
+                ></p>
             </div>
 
-        </div>
+            <!-- история поиска -->
+            <div class="history-panel">
+                <span class="history-title">История поиска</span>
+                <ul class="history-list"></ul>
+            </div>
 
-    </div>
+        </section>
+
+    </main>
 
     <script src="index.js"></script>
 

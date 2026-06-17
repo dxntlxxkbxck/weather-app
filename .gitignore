@@ -1,0 +1,31 @@
+# системные файлы macOS
+.DS_Store
+
+# системные файлы Windows
+Thumbs.db
+Desktop.ini
+
+# настройки редакторов
+.vscode/
+.idea/
+
+# временные файлы и логи
+*.log
+*.tmp
+*.temp
+
+# переменные окружения и секреты
+.env
+.env.*
+!.env.example
+
+# зависимости и результаты сборки
+node_modules/
+dist/
+build/
+coverage/
+
+# резервные копии файлов
+*.bak
+*.backup
+*~
