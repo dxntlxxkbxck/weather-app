@@ -90,42 +90,49 @@ const changeSeasonalBackground = (todayItem, cityTimezone) => {
     }, 1300);
 };
 
-function setStatus(message = '') {
+const setStatus = (message = '') => {
     statusMessage.textContent = message;
-}
+};
 
-function readHistory() {
+const readHistory = () => {
     try {
-        const history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+        const history = JSON.parse(
+            localStorage.getItem('weatherHistory') || '[]'
+        );
+
         return Array.isArray(history) ? history : [];
     } catch {
         localStorage.removeItem('weatherHistory');
         return [];
     }
-}
+};
 
-function renderHistory() {
+const renderHistory = () => {
     const history = readHistory();
     historyList.innerHTML = '';
 
     if (history.length === 0) {
-        historyList.innerHTML = '<li class="history-empty">Пока нет сохраненных городов</li>';
+        historyList.innerHTML =
+            '<li class="history-empty">Пока нет сохраненных городов</li>';
+
         return;
     }
 
     history.forEach(city => {
         const item = document.createElement('li');
         const button = document.createElement('button');
+
         button.type = 'button';
         button.textContent = city;
         button.addEventListener('click', () => fetchWeatherData(city));
+
         item.appendChild(button);
         historyList.appendChild(item);
     });
-}
+};
 
 // сохраняем историю поиска в localStorage
-function saveToHistory(city) {
+const saveToHistory = city => {
     const normalizedCity = city.trim();
     const history = readHistory()
         .filter(item => item.toLowerCase() !== normalizedCity.toLowerCase());
@@ -135,18 +142,32 @@ function saveToHistory(city) {
     renderHistory();
 }
 
-function getCityDate(timestamp, timezone) {
+const getCityDate = (timestamp, timezone) => {
     return new Date((timestamp + timezone) * 1000);
-}
+};
 
-function getLocalDateOptions(date) {
+const getLocalDateOptions = date => {
     return {
-        weekday: date.toLocaleDateString('ru', { weekday: 'long', timeZone: 'UTC' }),
-        fullDate: date.toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }),
-        day: date.toLocaleDateString('ru', { weekday: 'short', timeZone: 'UTC' }),
+        weekday: date.toLocaleDateString('ru', {
+            weekday: 'long',
+            timeZone: 'UTC'
+        }),
+
+        fullDate: date.toLocaleDateString('ru', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'UTC'
+        }),
+
+        day: date.toLocaleDateString('ru', {
+            weekday: 'short',
+            timeZone: 'UTC'
+        }),
+
         dayNumber: date.getUTCDate()
     };
-}
+};
 
 // главная функция получения погоды
 const fetchWeatherData = location => {
