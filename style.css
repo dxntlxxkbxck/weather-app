@@ -311,9 +311,60 @@ body {
 }
 
 
+/* строка поиска города */
+.search-form {
+    display: flex;
+    gap: 8px;
+}
+
+
+/* поле поиска города */
+.city-input {
+    min-width: 0;
+    flex: 1;
+    padding: 10px 14px;
+
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.08);
+
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 25px;
+    outline: none;
+
+    font: inherit;
+}
+
+
+.city-input::placeholder {
+    color: #b0bec5;
+}
+
+
+.city-input:focus {
+    border-color: #9fa8da;
+    box-shadow: 0 0 0 3px rgba(159, 168, 218, 0.22);
+}
+
+
+/* скрытая, но доступная подпись для поля */
+.visually-hidden {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+
+    border: 0;
+}
+
+
 /* кнопка поиска города */
 .loc-button {
-    width: 100%;
     padding: 10px;
 
     color: #fff;
@@ -517,4 +568,9 @@ body {
         margin-left: 24px;
         margin-right: 24px;
     }
+}
+
+
+.search-form .loc-button {
+    flex: 0 0 auto;
 }

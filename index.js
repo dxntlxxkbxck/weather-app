@@ -1,6 +1,10 @@
+import { normalizeLocation } from './location.js';
+
 const apiKey = '99baf33dc7ad6921883d110b2ca11d7f';
 
 const locButton = document.querySelector('.loc-button');
+const searchForm = document.querySelector('.search-form');
+const searchInput = document.querySelector('.city-input');
 const todayInfo = document.querySelector('.today-info');
 const todayWeatherIcon = document.querySelector('.today-weather i');
 const todayTemp = document.querySelector('.weather-temp');
@@ -279,15 +283,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData('Saint Petersburg, RU');
 });
 
-// кнопка поиска с валидацией
-locButton.addEventListener('click', () => {
-    const location = prompt('введите название города:');
-    
-    // валидация: не пустой + только буквы и пробелы (рус+лат)
-    if (!location || !/^[a-zA-Zа-яёА-ЯЁ\s,.-]+$/.test(location.trim())) {
-        alert('введите корректное название города (только буквы)');
+// поиск города через встроенную форму
+searchForm.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const location = normalizeLocation(searchInput.value);
+
+    if (!location) {
+        setStatus('Введите корректное название города.');
+        searchInput.focus();
         return;
     }
-    
-    fetchWeatherData(location.trim());
+
+    searchInput.value = '';
+    fetchWeatherData(location);
 });
