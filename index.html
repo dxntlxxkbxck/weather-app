@@ -77,14 +77,24 @@
             <!-- прогноз создаётся динамически в index.js -->
             <ul class="days-list"></ul>
 
-            <!-- кнопка поиска и сообщение о состоянии -->
+            <!-- форма поиска и сообщение о состоянии -->
             <div class="btn-container">
-                <button
-                    class="loc-button"
-                    type="button"
-                >
-                    Поиск локации
-                </button>
+                <form class="search-form" novalidate>
+                    <label class="visually-hidden" for="city-search">Город</label>
+                    <input
+                        class="city-input"
+                        id="city-search"
+                        type="search"
+                        autocomplete="address-level2"
+                        placeholder="Введите город"
+                    >
+                    <button
+                        class="loc-button"
+                        type="submit"
+                    >
+                        Найти
+                    </button>
+                </form>
 
                 <p
                     class="status-message"
@@ -102,7 +112,7 @@
 
     </main>
 
-    <script src="index.js"></script>
+    <script type="module" src="index.js"></script>
 
 </body>
 
